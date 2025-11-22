@@ -31,3 +31,15 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* Scrollbar Hide for Desktop/Tablet only */
+@media (min-width: 768px) {
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
