@@ -1,0 +1,200 @@
+/* PIN Lock System Styles */
+
+/* PIN Number Pad */
+.pin-number-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.pin-number-btn {
+    background: #FACC15;
+    border: 3px solid #000;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.1s;
+    font-family: 'Pyidaungsu', Arial, sans-serif;
+}
+
+.pin-number-btn:hover {
+    background: #FDE047;
+    transform: translateY(-2px);
+}
+
+.pin-number-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.pin-number-btn.backspace {
+    background: #EF4444;
+    color: white;
+}
+
+.pin-number-btn.confirm {
+    background: #10B981;
+    color: white;
+}
+
+/* PIN Dots Display */
+.pin-dots-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.pin-dot {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #000;
+    border-radius: 50%;
+    background: white;
+    transition: all 0.2s;
+}
+
+.pin-dot.filled {
+    background: #000;
+}
+
+/* PIN Dialog */
+.pin-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.pin-dialog {
+    background: white;
+    border: 4px solid #000;
+    box-shadow: 8px 8px 0 #000;
+    max-width: 400px;
+    width: 100%;
+    padding: 24px;
+}
+
+.pin-dialog-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.pin-dialog-title {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.pin-dialog-subtitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #666;
+}
+
+.pin-dialog-body {
+    margin-bottom: 24px;
+}
+
+.pin-error-message {
+    background: #FEE2E2;
+    border: 3px solid #EF4444;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 700;
+    color: #991B1B;
+}
+
+.pin-success-message {
+    background: #D1FAE5;
+    border: 3px solid #10B981;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 700;
+    color: #065F46;
+}
+
+.pin-info-message {
+    background: #FEF3C7;
+    border: 3px solid #F59E0B;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 700;
+    color: #92400E;
+}
+
+.pin-timeout-display {
+    text-align: center;
+    font-size: 48px;
+    font-weight: 900;
+    color: #EF4444;
+    margin: 24px 0;
+}
+
+/* Shake Animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+/* Success Animation */
+@keyframes success-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.success-pulse {
+    animation: success-pulse 0.3s;
+}
+
+/* Lock Status Badge */
+.lock-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 3px solid #000;
+    font-weight: 900;
+    font-size: 18px;
+}
+
+.lock-status-badge.locked {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.lock-status-badge.unlocked {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .pin-number-btn {
+        padding: 16px;
+        font-size: 20px;
+    }
+    
+    .pin-dialog {
+        padding: 16px;
+    }
+    
+    .pin-dialog-title {
+        font-size: 20px;
+    }
+}

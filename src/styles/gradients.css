@@ -1,0 +1,32 @@
+/* Beautiful Color Gradients */
+.gradient-red {
+    background: linear-gradient(135deg, #FCA5A5 0%, #F87171 100%);
+}
+
+.gradient-green {
+    background: linear-gradient(135deg, #86EFAC 0%, #4ADE80 100%);
+}
+
+.gradient-blue {
+    background: linear-gradient(135deg, #93C5FD 0%, #60A5FA 100%);
+}
+
+.gradient-purple {
+    background: linear-gradient(135deg, #C4B5FD 0%, #A78BFA 100%);
+}
+
+.gradient-yellow {
+    background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%);
+}
+
+.gradient-pink {
+    background: linear-gradient(135deg, #FBCFE8 0%, #F9A8D4 100%);
+}
+
+.gradient-orange {
+    background: linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%);
+}
+
+.gradient-teal {
+    background: linear-gradient(135deg, #99F6E4 0%, #5EEAD4 100%);
+}
