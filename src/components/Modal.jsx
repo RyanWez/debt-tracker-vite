@@ -20,11 +20,11 @@ export default function Modal({ isOpen, onClose, title, children, className }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
             <div
                 className={clsx(
-                    "bg-white w-full max-h-[90vh] overflow-y-auto brutalist-card relative animate-slideInUp",
+                    "gradient-yellow w-full max-h-[90vh] overflow-y-auto brutalist-card relative animate-slideInUp",
                     className || "max-w-md"
                 )}
             >
-                <div className="flex justify-between items-center p-4 border-b-3 border-black bg-yellow-300">
+                <div className="flex justify-between items-center p-4 border-b-3 border-black">
                     <h2 className="text-xl font-black">{title}</h2>
                     <button
                         onClick={onClose}

@@ -29,7 +29,7 @@ export default function Sidebar() {
                             clsx(
                                 'flex items-center gap-3 p-3 font-bold border-2 border-black transition-all',
                                 isActive
-                                    ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] translate-x-[-2px] translate-y-[-2px]'
+                                    ? 'gradient-yellow text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
                                     : 'bg-white hover:bg-gray-100'
                             )
                         }
