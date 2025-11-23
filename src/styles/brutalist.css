@@ -187,3 +187,32 @@ header h1 {
     width: 0%;
     transition: width 4s linear;
 }
+
+/* Graph Paper Grid Pattern */
+.bg-grid-pattern {
+    background-color: #f9fafb;
+    background-image:
+        linear-gradient(#e5e7eb 1px, transparent 1px),
+        linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-size: 20px 20px;
+}
+
+/* Native Dialog Styles */
+dialog {
+    margin: auto;
+    border: 4px solid #000;
+    box-shadow: 8px 8px 0px #000;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+dialog[open] {
+    animation: slideInUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

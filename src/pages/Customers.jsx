@@ -1,20 +1,28 @@
+
 import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Search, Phone, User, Trash2, Edit, Plus } from 'lucide-react';
 import Modal from '../components/Modal';
+import CustomerDetailsModal from '../components/CustomerDetailsModal';
+
 import clsx from 'clsx';
 
 export default function Customers() {
   const { customers, addCustomer, updateCustomer, deleteCustomer, getCustomerTotalDebt } = useData();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Form State
+  // Form State for Add Customer
   const [formData, setFormData] = useState({ name: '', phone: '' });
 
-  // Edit/Delete State
-  const [editingCustomer, setEditingCustomer] = useState(null);
-  const [deletingCustomer, setDeletingCustomer] = useState(null);
+  // State for Modals and Selected Customer
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // New state
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false); // New state
+  const [selectedCustomer, setSelectedCustomer] = useState(null); // New state for details modal
+  const [customerToDelete, setCustomerToDelete] = useState(null); // New state, replaces deletingCustomer
+  const [customerToEdit, setCustomerToEdit] = useState(null); // New state, replaces editingCustomer
+  const [editName, setEditName] = useState(''); // New state for edit form field
+  const [editPhone, setEditPhone] = useState(''); // New state for edit form field
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(c =>
@@ -26,34 +34,66 @@ export default function Customers() {
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (formData.name.trim()) {
-      addCustomer(formData);
-      setFormData({ name: '', phone: '' });
+      const success = addCustomer(formData);
+      if (success) {
+        setFormData({ name: '', phone: '' });
+      }
     }
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    if (editingCustomer && editingCustomer.name.trim()) {
-      updateCustomer(editingCustomer.id, editingCustomer);
-      closeEditModal();
+    if (customerToEdit && editName.trim()) {
+      const success = updateCustomer(customerToEdit.id, { ...customerToEdit, name: editName, phone: editPhone });
+      if (success) {
+        closeEditModal();
+        // If the edited customer was the one in details modal, update it
+        if (selectedCustomer && selectedCustomer.id === customerToEdit.id) {
+          setSelectedCustomer(prev => ({ ...prev, name: editName, phone: editPhone }));
+        }
+      }
     }
   };
 
   const openEditModal = (customer) => {
-    setEditingCustomer({ ...customer });
+    setCustomerToEdit(customer);
+    setEditName(customer.name);
+    setEditPhone(customer.phone || '');
     setIsEditModalOpen(true);
   };
 
   const closeEditModal = () => {
     setIsEditModalOpen(false);
-    setEditingCustomer(null);
+    setCustomerToEdit(null);
+    setEditName('');
+    setEditPhone('');
   };
 
   const handleDelete = () => {
-    if (deletingCustomer) {
-      deleteCustomer(deletingCustomer.id);
-      setDeletingCustomer(null);
+    if (customerToDelete) {
+      deleteCustomer(customerToDelete.id);
+      setCustomerToDelete(null);
+      setIsDeleteModalOpen(false); // Close delete modal
+      setSelectedCustomer(null); // Clear selected customer if it was deleted
+      setIsDetailsModalOpen(false); // Close details modal if open
     }
+  };
+
+  // New handlers for customer list item clicks and modal actions
+  const handleCustomerClick = (customer) => {
+    setSelectedCustomer(customer);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditClick = (customer) => {
+    openEditModal(customer); // Use existing openEditModal logic
+    setIsDetailsModalOpen(false); // Close details modal
+  };
+
+  const handleDeleteClick = (customer) => {
+    setCustomerToDelete(customer);
+    setIsDetailsModalOpen(false); // Close details modal
+    setIsDeleteModalOpen(true);
   };
 
   return (
@@ -106,27 +146,18 @@ export default function Customers() {
           {filteredCustomers.map(customer => {
             const totalDebt = getCustomerTotalDebt(customer.id);
             return (
-              <div key={customer.id} className="brutalist-card bg-white p-4 flex flex-col justify-between group hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all">
+              <div
+                key={customer.id}
+                onClick={() => handleCustomerClick(customer)} // Changed click handler
+                className="brutalist-card bg-white p-4 flex flex-col justify-between group hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer" // Added cursor-pointer
+              >
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-black text-lg flex items-center gap-2">
                       <User size={18} />
                       {customer.name}
                     </h3>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEditModal(customer)}
-                        className="p-1 hover:bg-blue-100 text-blue-600 rounded border-2 border-transparent hover:border-black transition-all"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => setDeletingCustomer(customer)}
-                        className="p-1 hover:bg-red-100 text-red-600 rounded border-2 border-transparent hover:border-black transition-all"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    {/* Removed inline edit/delete buttons */}
                   </div>
                   {customer.phone && (
                     <p className="text-sm font-bold text-gray-500 flex items-center gap-2 mb-3">
@@ -159,11 +190,22 @@ export default function Customers() {
         </div>
       )}
 
+      {/* Customer Details Modal (New Component) */}
+      <CustomerDetailsModal
+        customer={selectedCustomer}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        onEdit={handleEditClick}
+        onDelete={handleDeleteClick}
+        getCustomerTotalDebt={getCustomerTotalDebt} // Pass the function
+      />
+
       {/* Edit Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={closeEditModal}
         title="✏️ ဖောက်သည် ပြင်ဆင်ရန်"
+        variant="info"
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
           <div>
@@ -171,8 +213,8 @@ export default function Customers() {
             <input
               type="text"
               required
-              value={editingCustomer?.name || ''}
-              onChange={e => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+              value={editName} // Use new state
+              onChange={e => setEditName(e.target.value)} // Use new state setter
               className="brutalist-input w-full p-3"
             />
           </div>
@@ -180,8 +222,8 @@ export default function Customers() {
             <label className="font-bold text-sm block mb-1">ဖုန်းနံပါတ်</label>
             <input
               type="tel"
-              value={editingCustomer?.phone || ''}
-              onChange={e => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
+              value={editPhone} // Use new state
+              onChange={e => setEditPhone(e.target.value)} // Use new state setter
               className="brutalist-input w-full p-3"
             />
           </div>
@@ -198,15 +240,16 @@ export default function Customers() {
 
       {/* Delete Confirmation Modal */}
       <Modal
-        isOpen={!!deletingCustomer}
-        onClose={() => setDeletingCustomer(null)}
+        isOpen={isDeleteModalOpen} // Use new state
+        onClose={() => setIsDeleteModalOpen(false)} // Use new state setter
         title="⚠️ သတိပေးချက်"
         className="max-w-sm"
+        variant="danger"
       >
         <div className="text-center">
           <div className="text-5xl mb-4">🗑️</div>
           <p className="font-bold mb-2">ဒီဖောက်သည်ကို ဖျက်မှာ သေချာလား?</p>
-          <p className="text-sm text-gray-600 mb-4">"{deletingCustomer?.name}" နှင့် ပတ်သက်သော မှတ်တမ်းများအားလုံး ပျောက်သွားပါလိမ့်မယ်။</p>
+          <p className="text-sm text-gray-600 mb-4">"{customerToDelete?.name}" နှင့် ပတ်သက်သော မှတ်တမ်းများအားလုံး ပျောက်သွားပါလိမ့်မယ်။</p>
 
           <div className="flex gap-3">
             <button
@@ -216,7 +259,7 @@ export default function Customers() {
               ဖျက်မယ်
             </button>
             <button
-              onClick={() => setDeletingCustomer(null)}
+              onClick={() => setIsDeleteModalOpen(false)} // Use new state setter
               className="brutalist-btn bg-gray-200 text-black flex-1 py-2"
             >
               မဖျက်တော့ဘူး

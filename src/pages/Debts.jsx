@@ -1,10 +1,17 @@
 import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
-import { Search, Plus, FileText, Calendar, User } from 'lucide-react';
+import { Search, Plus, FileText, Calendar, User, Edit, Trash2 } from 'lucide-react';
+import SearchableSelect from '../components/SearchableSelect';
+import Modal from '../components/Modal';
 
 export default function Debts() {
-    const { customers, debts, addDebt } = useData();
+    const { customers, debts, addDebt, updateDebt, deleteDebt } = useData();
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Edit/Delete State
+    const [editingDebt, setEditingDebt] = useState(null);
+    const [deletingDebt, setDeletingDebt] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -28,19 +35,49 @@ export default function Debts() {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (formData.customerId && formData.amount) {
-            addDebt({
+            const success = addDebt({
                 ...formData,
                 amount: Number(formData.amount),
                 total: Number(formData.amount)
             });
-            // Reset form but keep date
-            setFormData(prev => ({
-                ...prev,
-                customerId: '',
-                item: '',
-                amount: ''
-            }));
+            
+            if (success) {
+                // Reset form but keep date
+                setFormData(prev => ({
+                    ...prev,
+                    customerId: '',
+                    item: '',
+                    amount: ''
+                }));
+            }
         }
+    };
+
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        if (editingDebt && editingDebt.amount) {
+            const success = updateDebt(editingDebt.id, {
+                ...editingDebt,
+                amount: Number(editingDebt.amount),
+                total: Number(editingDebt.amount)
+            });
+            if (success) {
+                setIsEditModalOpen(false);
+                setEditingDebt(null);
+            }
+        }
+    };
+
+    const handleDelete = () => {
+        if (deletingDebt) {
+            deleteDebt(deletingDebt.id);
+            setDeletingDebt(null);
+        }
+    };
+
+    const openEditModal = (debt) => {
+        setEditingDebt({ ...debt });
+        setIsEditModalOpen(true);
     };
 
     const getCustomerName = (id) => customers.find(c => c.id === id)?.name || 'Unknown';
@@ -48,23 +85,18 @@ export default function Debts() {
     return (
         <div className="space-y-6">
             {/* Add Debt Form (Inline Card) */}
-            <div className="brutalist-card gradient-pink p-4 animate-slideInUp">
+            <div className="brutalist-card gradient-pink p-4 animate-slideInUp relative z-20">
                 <h2 className="text-lg font-black mb-3 flex items-center gap-2">
                     <Plus size={24} className="border-2 border-black rounded-full p-0.5 bg-white" />
                     ကြွေးအသစ်မှတ်မယ်
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-3">
-                    <select
-                        required
+                    <SearchableSelect
+                        options={customers}
                         value={formData.customerId}
-                        onChange={e => setFormData({ ...formData, customerId: e.target.value })}
-                        className="brutalist-input w-full p-3 bg-white"
-                    >
-                        <option value="">-- ဖောက်သည် ရွေးပါ --</option>
-                        {customers.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                    </select>
+                        onChange={(value) => setFormData({ ...formData, customerId: value })}
+                        placeholder="-- ဖောက်သည် ရွေးပါ --"
+                    />
                     <input
                         type="text"
                         required
@@ -134,12 +166,117 @@ export default function Debts() {
                                         <Calendar size={12} />
                                         {debt.date}
                                     </span>
+                                    <div className="flex gap-2 mt-1">
+                                        <button 
+                                            onClick={() => openEditModal(debt)}
+                                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                        >
+                                            <Edit size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => setDeletingDebt(debt)}
+                                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title="✏️ အကြွေးစာရင်း ပြင်ဆင်ရန်"
+                variant="info"
+            >
+                <form onSubmit={handleEditSubmit} className="space-y-4">
+                    <div>
+                        <label className="font-bold text-sm block mb-1">ဖောက်သည်</label>
+                        <input
+                            type="text"
+                            disabled
+                            value={getCustomerName(editingDebt?.customerId)}
+                            className="brutalist-input w-full p-3 bg-gray-100"
+                        />
+                    </div>
+                    <div>
+                        <label className="font-bold text-sm block mb-1">ပစ္စည်း/မှတ်စု</label>
+                        <input
+                            type="text"
+                            required
+                            value={editingDebt?.item || ''}
+                            onChange={e => setEditingDebt({ ...editingDebt, item: e.target.value })}
+                            className="brutalist-input w-full p-3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="font-bold text-sm block mb-1">ပမာဏ</label>
+                            <input
+                                type="number"
+                                required
+                                min="0"
+                                value={editingDebt?.amount || ''}
+                                onChange={e => setEditingDebt({ ...editingDebt, amount: e.target.value })}
+                                className="brutalist-input w-full p-3"
+                            />
+                        </div>
+                        <div>
+                            <label className="font-bold text-sm block mb-1">ရက်စွဲ</label>
+                            <input
+                                type="date"
+                                required
+                                value={editingDebt?.date || ''}
+                                onChange={e => setEditingDebt({ ...editingDebt, date: e.target.value })}
+                                className="brutalist-input w-full p-3"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                        <button type="submit" className="brutalist-btn bg-green-500 text-white w-full py-3">
+                            ✅ ပြင်ဆင်မယ်
+                        </button>
+                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="brutalist-btn bg-gray-400 text-white w-full py-3">
+                            ❌ မလုပ်တော့ဘူး
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={!!deletingDebt}
+                onClose={() => setDeletingDebt(null)}
+                title="⚠️ သတိပေးချက်"
+                className="max-w-sm"
+                variant="danger"
+            >
+                <div className="text-center">
+                    <div className="text-5xl mb-4">🗑️</div>
+                    <p className="font-bold mb-2">ဒီမှတ်တမ်းကို ဖျက်မှာ သေချာလား?</p>
+                    <p className="text-sm text-gray-600 mb-4">ပြန်ယူလို့ မရနိုင်တော့ပါ။</p>
+
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleDelete}
+                            className="brutalist-btn bg-red-500 text-white flex-1 py-2"
+                        >
+                            ဖျက်မယ်
+                        </button>
+                        <button
+                            onClick={() => setDeletingDebt(null)}
+                            className="brutalist-btn bg-gray-200 text-black flex-1 py-2"
+                        >
+                            မဖျက်တော့ဘူး
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }

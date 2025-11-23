@@ -1,42 +1,66 @@
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 
-export default function Modal({ isOpen, onClose, title, children, className }) {
+export default function Modal({ isOpen, onClose, title, children, className, variant = 'default', headerActions }) {
+    const dialogRef = useRef(null);
+
     useEffect(() => {
+        const dialog = dialogRef.current;
         if (isOpen) {
-            document.body.style.overflow = 'hidden';
+            dialog?.showModal();
         } else {
-            document.body.style.overflow = 'unset';
+            dialog?.close();
         }
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
     }, [isOpen]);
 
-    if (!isOpen) return null;
+    const handleClose = () => {
+        onClose();
+    };
+
+    // Handle Esc key manually if needed, but dialog handles it by default. 
+    // We just need to sync the state when it closes.
+    const onCancel = (e) => {
+        e.preventDefault(); // Prevent default close to allow controlled closing if needed, or just sync state
+        onClose();
+    };
+
+    const getHeaderColor = () => {
+        switch (variant) {
+            case 'danger': return 'bg-red-500 text-white';
+            case 'success': return 'bg-green-500 text-white';
+            case 'info': return 'bg-blue-500 text-white';
+            default: return 'gradient-yellow text-black';
+        }
+    };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-            <div
-                className={clsx(
-                    "gradient-yellow w-full max-h-[90vh] overflow-y-auto brutalist-card relative animate-slideInUp",
-                    className || "max-w-md"
-                )}
-            >
-                <div className="flex justify-between items-center p-4 border-b-3 border-black">
-                    <h2 className="text-xl font-black">{title}</h2>
+        <dialog
+            ref={dialogRef}
+            onCancel={onCancel}
+            className={clsx(
+                "bg-white p-0 brutalist-card backdrop:bg-black/60 backdrop:backdrop-blur-sm",
+                className || "max-w-md w-full"
+            )}
+        >
+            <div className={clsx(
+                "flex justify-between items-center p-4 border-b-3 border-black sticky top-0 z-10",
+                getHeaderColor()
+            )}>
+                <h2 className="text-xl font-black flex items-center gap-2">{title}</h2>
+                <div className="flex items-center gap-2">
+                    {headerActions}
                     <button
-                        onClick={onClose}
-                        className="p-1 hover:bg-black hover:text-white transition-colors border-2 border-black bg-white"
+                        onClick={handleClose}
+                        className="p-1 hover:bg-black hover:text-white transition-colors border-2 border-black bg-white text-black cursor-pointer"
                     >
                         <X size={20} />
                     </button>
                 </div>
-                <div className="p-4">
-                    {children}
-                </div>
             </div>
-        </div>
+            <div className="p-6">
+                {children}
+            </div>
+        </dialog>
     );
 }
