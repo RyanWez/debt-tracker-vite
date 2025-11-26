@@ -1,11 +1,17 @@
+import { useData } from '../contexts/DataContext';
 import Modal from './Modal';
 import { Edit2, Trash2 } from 'lucide-react';
 
 export default function CustomerDetailsModal({ customer, isOpen, onClose, onEdit, onDelete }) {
+    const { debts, payments } = useData();
+
     if (!customer) return null;
 
-    const totalDebt = customer.debts.reduce((sum, debt) => sum + debt.amount, 0) -
-        customer.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const customerDebts = debts.filter(d => d.customerId === customer.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const customerPayments = payments.filter(p => p.customerId === customer.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const totalDebt = customerDebts.reduce((sum, debt) => sum + (Number(debt.total) || 0), 0) -
+        customerPayments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
 
     const headerActions = (
         <>
@@ -44,14 +50,14 @@ export default function CustomerDetailsModal({ customer, isOpen, onClose, onEdit
             <div className="mb-6">
                 <h3 className="text-lg font-black mb-3">အကြွေးယူမှုစာရင်း</h3>
                 <div className="space-y-3">
-                    {customer.debts.length > 0 ? (
-                        customer.debts.slice(0, 3).map((debt) => (
+                    {customerDebts.length > 0 ? (
+                        customerDebts.slice(0, 3).map((debt) => (
                             <div key={debt.id} className="flex justify-between items-center bg-red-50 p-3 border-l-4 border-black">
                                 <div>
-                                    <div className="font-bold">{debt.description || 'အကြွေး'}</div>
+                                    <div className="font-bold">{debt.item || 'အကြွေး'}</div>
                                     <div className="text-xs text-gray-500">{new Date(debt.date).toLocaleDateString()}</div>
                                 </div>
-                                <div className="font-black text-red-600">{debt.amount.toLocaleString()} Ks</div>
+                                <div className="font-black text-red-600">{Number(debt.total).toLocaleString()} Ks</div>
                             </div>
                         ))
                     ) : (
@@ -64,14 +70,14 @@ export default function CustomerDetailsModal({ customer, isOpen, onClose, onEdit
             <div>
                 <h3 className="text-lg font-black mb-3">ပြန်ဆပ်ငွေမှတ်တမ်း</h3>
                 <div className="space-y-3">
-                    {customer.payments.length > 0 ? (
-                        customer.payments.slice(0, 3).map((payment) => (
+                    {customerPayments.length > 0 ? (
+                        customerPayments.slice(0, 3).map((payment) => (
                             <div key={payment.id} className="flex justify-between items-center bg-green-50 p-3 border-l-4 border-black">
                                 <div>
                                     <div className="font-bold">ပြန်ဆပ်ငွေ</div>
                                     <div className="text-xs text-gray-500">{new Date(payment.date).toLocaleDateString()}</div>
                                 </div>
-                                <div className="font-black text-green-600">{payment.amount.toLocaleString()} Ks</div>
+                                <div className="font-black text-green-600">{Number(payment.amount).toLocaleString()} Ks</div>
                             </div>
                         ))
                     ) : (
